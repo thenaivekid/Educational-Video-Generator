@@ -7,6 +7,7 @@ from langchain_google_genai import ChatGoogleGenerativeAI
 from dotenv import load_dotenv
 import cloudinary
 import cloudinary.uploader
+from fastapi.middleware.cors import CORSMiddleware
 
 from utils import run_manim, generate_safe_filename, extract_code_script_and_mcq
 # Load environment variables
@@ -31,6 +32,14 @@ async def upload_to_cloudinary(file_path, resource_type):
 
 app = FastAPI()
 
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],  # Allows all origins
+    allow_credentials=True,
+    allow_methods=["*"],  # Allows all methods
+    allow_headers=["*"],  # Allows all headers
+)
 # Initialize the language model
 llm = ChatGoogleGenerativeAI(
     model="gemini-1.5-pro",
@@ -56,7 +65,7 @@ async def generate_video(title: str):
                 ("human", f"""Generate Manim code for a short video on '{title}'. Please provide:
                 1. Python code for Manim (name the class 'Video')
                 2. A text script with timings for narration
-                3. An MCQ question about the video content
+                3. Five MCQ questions about the video content
 
                 Format your response as follows:
                 ```python
@@ -71,11 +80,33 @@ async def generate_video(title: str):
                 ```
 
                 ```mcq
-                {{
-                    "question": "[Your question here]",
-                    "options": ["[Option 1]", "[Option 2]", "[Option 3]", "[Option 4]"],
-                    "correctAnswer": "[Correct option here]"
-                }}
+                [
+                    {{
+                        "question": "[Question 1]",
+                        "options": ["[Option 1]", "[Option 2]", "[Option 3]", "[Option 4]"],
+                        "correctAnswer": "[Correct option for Question 1]"
+                    }},
+                    {{
+                        "question": "[Question 2]",
+                        "options": ["[Option 1]", "[Option 2]", "[Option 3]", "[Option 4]"],
+                        "correctAnswer": "[Correct option for Question 2]"
+                    }},
+                    {{
+                        "question": "[Question 3]",
+                        "options": ["[Option 1]", "[Option 2]", "[Option 3]", "[Option 4]"],
+                        "correctAnswer": "[Correct option for Question 3]"
+                    }},
+                    {{
+                        "question": "[Question 4]",
+                        "options": ["[Option 1]", "[Option 2]", "[Option 3]", "[Option 4]"],
+                        "correctAnswer": "[Correct option for Question 4]"
+                    }},
+                    {{
+                        "question": "[Question 5]",
+                        "options": ["[Option 1]", "[Option 2]", "[Option 3]", "[Option 4]"],
+                        "correctAnswer": "[Correct option for Question 5]"
+                    }}
+                ]
                 ```
                 """),
             ]
