@@ -1,0 +1,10 @@
+{
+  "question": "How many sides does a triangle have?",
+  "options": [
+    "Two",
+    "Three",
+    "Four",
+    "Five"
+  ],
+  "correctAnswer": "Three"
+}

@@ -1,11 +1,12 @@
 import os
+import json
 import subprocess
 import re
 from fastapi import FastAPI, HTTPException
 from langchain_google_genai import ChatGoogleGenerativeAI
 from dotenv import load_dotenv
 import asyncio
-from utils import run_manim, generate_safe_filename, extract_code_and_script
+from utils import run_manim, generate_safe_filename, extract_code_script_and_mcq
 # Load environment variables
 load_dotenv()
 GOOGLE_API_KEY = os.getenv("GOOGLE_API_KEY")
@@ -37,6 +38,7 @@ async def generate_video(title: str):
                 ("human", f"""Generate Manim code for a short video on '{title}'. Please provide:
                 1. Python code for Manim (name the class 'Video')
                 2. A text script with timings for narration
+                3. An MCQ question about the video content
 
                 Format your response as follows:
                 ```python
@@ -49,6 +51,14 @@ async def generate_video(title: str):
                 ...
                 [Continue with timing and narration]
                 ```
+
+                ```mcq
+                {{
+                    "question": "[Your question here]",
+                    "options": ["[Option 1]", "[Option 2]", "[Option 3]", "[Option 4]"],
+                    "correctAnswer": "[Correct option here]"
+                }}
+                ```
                 """),
             ]
 
@@ -59,8 +69,8 @@ async def generate_video(title: str):
                 raise HTTPException(status_code=500, detail="Failed to generate code")
             print("ai_response.content: ", ai_response.content)
             # Extract the Python code using regular expressions
-            python_code, script = extract_code_and_script(ai_response.content)
-            # print("script: ", script)
+            python_code, parsed_script, mcq = extract_code_script_and_mcq(ai_response.content)
+            print("script: ", mcq)
             if not python_code:
                 raise ValueError("No Python code found in the API response.")
 
@@ -75,7 +85,10 @@ async def generate_video(title: str):
 
             # Construct the path to the generated video
             generic_path = f"media/videos/generate_manim/480p15/{output_file}"
-
+            mcq_file = f"mcq/{safe_filename}.json"
+            with open(mcq_file, 'w') as f:
+                json.dump(mcq, f, indent=2)
+            
             # Check if the video file exists
             if not os.path.exists(generic_path):
                 raise FileNotFoundError("Video file not created")

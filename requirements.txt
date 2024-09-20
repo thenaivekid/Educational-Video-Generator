@@ -1,0 +1,13 @@
+python-dotenv
+fastapi
+uvicorn
+langchain
+manim
+numpy
+matplotlib
+pillow
+pydantic
+requests
+openai
+langchain-google-
+cloudinary

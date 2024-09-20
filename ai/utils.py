@@ -2,6 +2,7 @@ import asyncio
 import os
 import re
 import time
+import json
 
 async def run_manim(output_file):
     try:
@@ -51,6 +52,41 @@ def extract_code_and_script(content):
             parsed_script.append((time_seconds, text.strip()))
     
     return python_code, parsed_script
+
+
+def extract_code_script_and_mcq(content):
+    code_pattern = re.compile(r'```python\n(.*?)```', re.DOTALL)
+    script_pattern = re.compile(r'```script\n(.*?)```', re.DOTALL)
+    mcq_pattern = re.compile(r'```mcq\n(.*?)```', re.DOTALL)
+    
+    code_match = code_pattern.search(content)
+    script_match = script_pattern.search(content)
+    mcq_match = mcq_pattern.search(content)
+    
+    if not code_match or not script_match or not mcq_match:
+        raise ValueError("Could not extract code, script, and MCQ from the response.")
+    
+    python_code = code_match.group(1)
+    raw_script = script_match.group(1)
+    mcq_json = mcq_match.group(1)
+    
+    # Parse the raw script into a list of tuples
+    script_lines = raw_script.strip().split('\n')
+    parsed_script = []
+    
+    for line in script_lines:
+        match = re.match(r'(\d+:\d+)\s*-\s*(.*)', line.strip())
+        if match:
+            time_str, text = match.groups()
+            minutes, seconds = map(int, time_str.split(':'))
+            time_seconds = minutes * 60 + seconds
+            parsed_script.append((time_seconds, text.strip()))
+    
+    # Parse the MCQ JSON
+    mcq = json.loads(mcq_json)
+    
+    return python_code, parsed_script, mcq
+
 
 
 if __name__ == "__main__":
