@@ -1,0 +1,13 @@
+# This file is used internally by FFMPEG.
+file 'file:C:/Users/Acer/codes/hackademia2/ai/media/videos/generate_manim/480p15/partial_movie_files/Video/1121228674_3047012639_223132457.mp4'
+file 'file:C:/Users/Acer/codes/hackademia2/ai/media/videos/generate_manim/480p15/partial_movie_files/Video/3953065503_1507688068_2180269471.mp4'
+file 'file:C:/Users/Acer/codes/hackademia2/ai/media/videos/generate_manim/480p15/partial_movie_files/Video/3953065503_306410409_2974024489.mp4'
+file 'file:C:/Users/Acer/codes/hackademia2/ai/media/videos/generate_manim/480p15/partial_movie_files/Video/3953065503_3438219438_8148913.mp4'
+file 'file:C:/Users/Acer/codes/hackademia2/ai/media/videos/generate_manim/480p15/partial_movie_files/Video/3953065503_3963747600_1598535628.mp4'
+file 'file:C:/Users/Acer/codes/hackademia2/ai/media/videos/generate_manim/480p15/partial_movie_files/Video/3953065503_3438219438_2074672983.mp4'
+file 'file:C:/Users/Acer/codes/hackademia2/ai/media/videos/generate_manim/480p15/partial_movie_files/Video/3953065503_2600762058_4285355745.mp4'
+file 'file:C:/Users/Acer/codes/hackademia2/ai/media/videos/generate_manim/480p15/partial_movie_files/Video/3953065503_3438219438_1181364598.mp4'
+file 'file:C:/Users/Acer/codes/hackademia2/ai/media/videos/generate_manim/480p15/partial_movie_files/Video/3953065503_3656858325_1975581594.mp4'
+file 'file:C:/Users/Acer/codes/hackademia2/ai/media/videos/generate_manim/480p15/partial_movie_files/Video/3953065503_3438219438_3923760394.mp4'
+file 'file:C:/Users/Acer/codes/hackademia2/ai/media/videos/generate_manim/480p15/partial_movie_files/Video/3953065503_1274361865_4187201786.mp4'
+file 'file:C:/Users/Acer/codes/hackademia2/ai/media/videos/generate_manim/480p15/partial_movie_files/Video/3953065503_3494816192_2231106427.mp4'

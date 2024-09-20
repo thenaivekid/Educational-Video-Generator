@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Factorization Fun</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            background-color: #f0f8ff;
+            padding: 20px;
+        }
+
+        .game-box {
+            background-color: #e0f7fa;
+            padding: 20px;
+            border-radius: 10px;
+            display: inline-block;
+        }
+
+        .input-box {
+            margin: 10px;
+        }
+
+        .reward {
+            font-size: 24px;
+            color: green;
+            display: none;
+            animation: bounce 1s infinite;
+        }
+
+        @keyframes bounce {
+            0% {
+                transform: translateY(0);
+            }
+
+            50% {
+                transform: translateY(-20px);
+            }
+
+            100% {
+                transform: translateY(0);
+            }
+        }
+
+        .hint {
+            font-size: 14px;
+            color: #ff5722;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="game-box">
+        <h1>Let's Learn Factorization!</h1>
+        <p>Can you factor the number <span id="question-number"></span> into its two factors?</p>
+        <div class="input-box">
+            <input type="number" id="factor1" placeholder="Factor 1">
+            <input type="number" id="factor2" placeholder="Factor 2">
+        </div>
+        <button onclick="checkAnswer()">Check Answer</button>
+        <p id="feedback"></p>
+        <div id="reward" class="reward">🎉 Great Job! 🎉</div>
+        <button onclick="generateQuestion()">New Question</button>
+    </div>
+
+    <script>
+        let numberToFactor;
+
+        // Generate a new factorization question
+        function generateQuestion() {
+            document.getElementById('feedback').textContent = '';
+            document.getElementById('reward').style.display = 'none';
+
+            numberToFactor = Math.floor(Math.random() * 50) + 10; // Random number between 10 and 50
+            document.getElementById('question-number').textContent = numberToFactor;
+
+            document.getElementById('factor1').value = '';
+            document.getElementById('factor2').value = '';
+        }
+
+        // Check if the factors are correct
+        function checkAnswer() {
+            const factor1 = parseInt(document.getElementById('factor1').value);
+            const factor2 = parseInt(document.getElementById('factor2').value);
+            const feedback = document.getElementById('feedback');
+
+            if (factor1 * factor2 === numberToFactor) {
+                feedback.textContent = "Correct!";
+                document.getElementById('reward').style.display = 'block';
+            } else {
+                feedback.innerHTML = "Oops, let's check:<br>";
+
+                if (factor1 * factor2 !== numberToFactor) {
+                    feedback.innerHTML += `The product of ${factor1} and ${factor2} is not ${numberToFactor}.<br>`;
+                }
+
+                if (factor1 * factor2 !== numberToFactor) {
+                    if (factor1 > numberToFactor) {
+                        feedback.innerHTML += `Hint: Factor 1 (${factor1}) is too large!<br>`;
+                    } else if (numberToFactor % factor1 !== 0) {
+                        feedback.innerHTML += `Hint: Factor 1 (${factor1}) is not a divisor of ${numberToFactor}.<br>`;
+                    } else {
+                        feedback.innerHTML += `Factor 1 (${factor1}) seems fine.<br>`;
+                    }
+
+                    if (factor2 > numberToFactor) {
+                        feedback.innerHTML += `Hint: Factor 2 (${factor2}) is too large!<br>`;
+                    } else if (numberToFactor % factor2 !== 0) {
+                        feedback.innerHTML += `Hint: Factor 2 (${factor2}) is not a divisor of ${numberToFactor}.<br>`;
+                    } else {
+                        feedback.innerHTML += `Factor 2 (${factor2}) seems fine.<br>`;
+                    }
+                }
+            }
+        }
+
+        // Initialize the first question
+        generateQuestion();
+    </script>
+</body>
+
+</html>
