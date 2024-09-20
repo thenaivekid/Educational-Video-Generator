@@ -11,3 +11,4 @@ requests
 openai
 langchain-google-genai
 cloudinary
+langchain_openai

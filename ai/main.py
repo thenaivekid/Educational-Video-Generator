@@ -6,14 +6,17 @@ from fastapi import FastAPI, HTTPException
 from langchain_google_genai import ChatGoogleGenerativeAI
 from dotenv import load_dotenv
 import cloudinary
+from pydantic import BaseModel
 import cloudinary.uploader
 from fastapi.middleware.cors import CORSMiddleware
+from langchain_openai import ChatOpenAI
+from langchain.schema import HumanMessage
 
 from utils import run_manim, generate_safe_filename, extract_code_script_and_mcq
 # Load environment variables
 load_dotenv()
 GOOGLE_API_KEY = os.getenv("GOOGLE_API_KEY")
-
+OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
 cloudinary.config(
     cloud_name=os.getenv('CLOUDINARY_CLOUD_NAME'),
     api_key=os.getenv('CLOUDINARY_API_KEY'),
@@ -33,6 +36,9 @@ async def upload_to_cloudinary(file_path, resource_type):
 app = FastAPI()
 
 
+
+
+
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],  # Allows all origins
@@ -40,6 +46,30 @@ app.add_middleware(
     allow_methods=["*"],  # Allows all methods
     allow_headers=["*"],  # Allows all headers
 )
+
+
+chate = ChatOpenAI(
+    model_name="gpt-3.5-turbo",
+    openai_api_key=os.getenv("OPENAI_API_KEY")
+)
+
+class ChatInput(BaseModel):
+    message: str
+
+@app.post("/chat/")
+async def chat_with_gpt(input: ChatInput):
+    try:
+        # Create a message with the user's input
+        message = HumanMessage(content=input.message)
+
+        # Get the response from the language model
+        response = chate.invoke([message])
+
+        # Return the response content
+        return {"response": response.content}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
 # Initialize the language model
 llm = ChatGoogleGenerativeAI(
     model="gemini-1.5-pro",
