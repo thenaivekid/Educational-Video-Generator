@@ -9,5 +9,5 @@ pillow
 pydantic
 requests
 openai
-langchain-google-
+langchain-google-genai
 cloudinary
