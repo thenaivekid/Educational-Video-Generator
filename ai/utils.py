@@ -3,6 +3,14 @@ import os
 import re
 import time
 import json
+import openai
+from openai import OpenAI
+from dotenv import load_dotenv
+from pathlib import Path
+import requests
+
+OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
+client = OpenAI(api_key=OPENAI_API_KEY)
 
 async def run_manim(output_file):
     try:
@@ -90,8 +98,63 @@ def extract_code_script_and_mcq(content):
 
 
 
+def generate_image(description: str, idx:int, n_files=5) -> str:
+    """Generate an image using DALL-E based on the scene description."""
+    try:
+        
+
+        response = client.images.generate(
+        model="dall-e-2",
+        prompt=description,
+        size="1024x1024",
+        quality="standard",
+        n=n_files,
+        )
+
+        files = []
+        for i in range(n_files):
+            image_url = response.data[i].url
+            image_filename = f"temp_img_{idx*n_files+i}.png"
+            save_image(image_url, image_filename)
+            files.append(image_filename)
+        return files
+    except Exception as e:
+        print(f"Error generating image: {str(e)}")
+        return ""
+
+def text_to_speech(narration: str, filename:str) -> str:
+    """Convert text to speech using Whisper."""
+    try:
+        speech_file_path = Path(__file__).parent / filename
+        response = client.audio.speech.create(
+        model="tts-1",
+        voice="alloy",
+        input=narration
+        )
+        response.stream_to_file(speech_file_path)
+        
+    except Exception as e:
+        print(f"Error converting text to speech: {str(e)}")
+        return ""
+
+
+def save_image(image_url: str, filename: str):
+    """Download and save the image from the given URL."""
+    try:
+        response = requests.get(image_url)
+        if response.status_code == 200:
+            with open(filename, 'wb') as f:
+                f.write(response.content)
+            print(f"Image saved as: {filename}")
+        else:
+            print(f"Failed to download image: {response.status_code}")
+    except Exception as e:
+        print(f"Error saving image file: {str(e)}")
+
 if __name__ == "__main__":
-    asyncio.run(run_manim("test1"))
+    generate_image("beautiful mountain")
+    text_to_speech("hi this is anil the god of coding.")
+    # asyncio.run(run_manim("test1"))
     # content = """
     # ```python
     # from manim import *

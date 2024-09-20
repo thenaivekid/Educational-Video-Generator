@@ -15,7 +15,7 @@ from typing import List, Tuple
 from langchain.output_parsers import PydanticOutputParser
 from langchain.prompts import ChatPromptTemplate
 
-from utils import run_manim, generate_safe_filename, extract_code_script_and_mcq
+from utils import run_manim, generate_safe_filename, extract_code_script_and_mcq, generate_image, text_to_speech, save_image
 # Load environment variables
 load_dotenv()
 GOOGLE_API_KEY = os.getenv("GOOGLE_API_KEY")
@@ -52,7 +52,7 @@ app.add_middleware(
 
 
 chate = ChatOpenAI(
-    model_name="gpt-3.5-turbo-0125",
+    model_name="gpt-4-turbo",
     openai_api_key=OPENAI_API_KEY
 )
 
@@ -101,10 +101,24 @@ async def generate_educational_content(request: ContentRequest):
 
         # Parse the response
         parsed_response = parser.parse(response.content)
-        for desc, narration in parsed_response.scenes:
-            print(desc, narration)
         
-        return {"video_title": parsed_response.short_topic, "video_link":"xxx", "mcqs": parsed_response.mcqs}
+        # Generate images using DALL-E for each scene description
+        image_files = []
+        for i, scene_description in enumerate(parsed_response.scenes):
+            files = generate_image(scene_description[0],i)  # Call DALL-E
+            
+            image_files.extend(files)
+        # Convert narration scripts to audio using Whisper
+        audio_files = []
+        for i, narration_script in enumerate(parsed_response.scenes):
+            filename = f"temp_audio_{i}.mp3"
+            text_to_speech(narration_script[1], filename)  # Call Whisper
+            audio_files.append(filename)
+        
+        thumbnail = cloudinary.uploader.upload("temp_img_1.png")
+        print(thumbnail)
+         
+        return {"video_title": parsed_response.short_topic, "description": request.topic, "thumbnail": thumbnail["url"], "video_link":"xxx", "mcqs": parsed_response.mcqs}
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
