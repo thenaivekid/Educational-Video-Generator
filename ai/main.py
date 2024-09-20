@@ -5,11 +5,29 @@ import re
 from fastapi import FastAPI, HTTPException
 from langchain_google_genai import ChatGoogleGenerativeAI
 from dotenv import load_dotenv
-import asyncio
+import cloudinary
+import cloudinary.uploader
+
 from utils import run_manim, generate_safe_filename, extract_code_script_and_mcq
 # Load environment variables
 load_dotenv()
 GOOGLE_API_KEY = os.getenv("GOOGLE_API_KEY")
+
+cloudinary.config(
+    cloud_name=os.getenv('CLOUDINARY_CLOUD_NAME'),
+    api_key=os.getenv('CLOUDINARY_API_KEY'),
+    api_secret=os.getenv('CLOUDINARY_API_SECRET')
+)
+
+
+async def upload_to_cloudinary(file_path, resource_type):
+    try:
+        result = cloudinary.uploader.upload(file_path, resource_type=resource_type)
+        return result['secure_url']
+    except Exception as e:
+        print(f"Error uploading to Cloudinary: {str(e)}")
+        raise
+
 
 app = FastAPI()
 
@@ -92,8 +110,11 @@ async def generate_video(title: str):
             # Check if the video file exists
             if not os.path.exists(generic_path):
                 raise FileNotFoundError("Video file not created")
-
-            return {"video_path": generic_path}
+            video_url = await upload_to_cloudinary(generic_path, 'video')
+            mcq_url = await upload_to_cloudinary(mcq_file, 'raw')
+            os.remove(generic_path)
+            os.remove(mcq_file)
+            return {"video_url": video_url, "mcq_url": mcq_url}
 
         except Exception as e:
             error_message = str(e)

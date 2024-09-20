@@ -24,34 +24,35 @@ def generate_safe_filename(title):
 
 
 
-def extract_code_and_script(content):
-    code_pattern = re.compile(r'```python\n(.*?)```', re.DOTALL)
-    code_match = code_pattern.search(content)
+
+# def extract_code_and_script(content):
+#     code_pattern = re.compile(r'```python\n(.*?)```', re.DOTALL)
+#     code_match = code_pattern.search(content)
     
-    script_pattern = re.compile(r'```script\n(.*?)```', re.DOTALL)
-    script_match = script_pattern.search(content)
+#     script_pattern = re.compile(r'```script\n(.*?)```', re.DOTALL)
+#     script_match = script_pattern.search(content)
     
-    if not code_match or not script_match:
-        raise ValueError("Could not extract both code and script from the response.")
+#     if not code_match or not script_match:
+#         raise ValueError("Could not extract both code and script from the response.")
     
-    python_code = code_match.group(1)
-    raw_script = script_match.group(1)
+#     python_code = code_match.group(1)
+#     raw_script = script_match.group(1)
     
-    # Parse the raw script into a list of tuples
-    script_lines = raw_script.strip().split('\n')
-    parsed_script = []
+#     # Parse the raw script into a list of tuples
+#     script_lines = raw_script.strip().split('\n')
+#     parsed_script = []
     
-    for line in script_lines:
-        # Match time and text
-        match = re.match(r'(\d+:\d+)\s*-\s*(.*)', line.strip())
-        if match:
-            time_str, text = match.groups()
-            # Convert time to seconds
-            minutes, seconds = map(int, time_str.split(':'))
-            time_seconds = minutes * 60 + seconds
-            parsed_script.append((time_seconds, text.strip()))
+#     for line in script_lines:
+#         # Match time and text
+#         match = re.match(r'(\d+:\d+)\s*-\s*(.*)', line.strip())
+#         if match:
+#             time_str, text = match.groups()
+#             # Convert time to seconds
+#             minutes, seconds = map(int, time_str.split(':'))
+#             time_seconds = minutes * 60 + seconds
+#             parsed_script.append((time_seconds, text.strip()))
     
-    return python_code, parsed_script
+#     return python_code, parsed_script
 
 
 def extract_code_script_and_mcq(content):
