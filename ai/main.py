@@ -14,6 +14,8 @@ from langchain.schema import HumanMessage
 from typing import List, Tuple
 from langchain.output_parsers import PydanticOutputParser
 from langchain.prompts import ChatPromptTemplate
+from moviepy.editor import ImageClip, AudioFileClip, concatenate_videoclips
+from typing import List
 
 from utils import run_manim, generate_safe_filename, extract_code_script_and_mcq, generate_image, text_to_speech, save_image
 # Load environment variables
@@ -89,36 +91,77 @@ prompt_template = ChatPromptTemplate.from_template(
 @app.post("/generate_educational_content/")
 async def generate_educational_content(request: ContentRequest):
     try:
-        # Format the prompt with user's input and desired output format
+        # Step 1: Format the prompt with user's input and desired output format
         prompt = prompt_template.format_prompt(
             grade=request.grade,
             topic=request.topic,
             format_instructions=parser.get_format_instructions()
         )
 
-        # Get the response from the language model
+        # Step 2: Get the response from the language model
         response = chate.invoke(prompt.to_messages())
 
-        # Parse the response
+        # Step 3: Parse the response
         parsed_response = parser.parse(response.content)
-        
-        # Generate images using DALL-E for each scene description
+
+        # Step 4: Generate images using DALL-E for each scene description
         image_files = []
         for i, scene_description in enumerate(parsed_response.scenes):
-            files = generate_image(scene_description[0],i)  # Call DALL-E
-            
+            files = generate_image(scene_description[0], i)  # Call DALL-E or similar
             image_files.extend(files)
-        # Convert narration scripts to audio using Whisper
+
+        # Step 5: Convert narration scripts to audio using a Text-to-Speech engine
         audio_files = []
+        caption = ""
         for i, narration_script in enumerate(parsed_response.scenes):
             filename = f"temp_audio_{i}.mp3"
-            text_to_speech(narration_script[1], filename)  # Call Whisper
+            text_to_speech(narration_script[1], filename)  # Convert narration to speech
             audio_files.append(filename)
+            caption += narration_script[1]
+
+        # Step 6: Assemble the video using MoviePy
+        def assemble_video(scene_images: List[str], audio_files: List[str], output_filename: str = "educational_video.mp4"):
+            clips = []
+            for audio_index, audio_file in enumerate(audio_files):
+                audio_clip = AudioFileClip(audio_file)
+                image_duration = audio_clip.duration / len(scene_images[audio_index * 5:(audio_index + 1) * 5])
+                
+                for img_index in range(audio_index * 5, (audio_index + 1) * 5):
+                    image_clip = ImageClip(scene_images[img_index]).set_duration(image_duration)
+                    start_time = (img_index % 5) * image_duration
+                    image_clip = image_clip.set_audio(audio_clip.subclip(start_time, start_time + image_duration))
+                    clips.append(image_clip)
+                    
+            final_video = concatenate_videoclips(clips, method="compose")
+            final_video.write_videofile(output_filename, fps=1)
+
+        # Call the video assembly function
+        video_filename = "educational_video.mp4"
+        assemble_video(image_files, audio_files, video_filename)
+
         
-        thumbnail = cloudinary.uploader.upload("temp_img_1.png")
-        print(thumbnail)
-         
-        return {"video_title": parsed_response.short_topic, "description": request.topic, "thumbnail": thumbnail["url"], "video_link":"xxx", "mcqs": parsed_response.mcqs}
+
+        upload_result = cloudinary.uploader.upload_large(video_filename, resource_type="video")
+        video_url = upload_result['secure_url']
+
+        # Step 8: Upload thumbnail (using first image as thumbnail)
+        thumbnail = cloudinary.uploader.upload(image_files[0])
+
+        # Clean up temp files (optional)
+        for file in image_files + audio_files:
+            os.remove(file)
+        os.remove(video_filename)
+
+        # Step 9: Return the result, including the video link, thumbnail, and MCQs
+        return {
+            "video_title": parsed_response.short_topic,
+            "caption": caption,
+            "description": request.topic,
+            "thumbnail": thumbnail["secure_url"],
+            "video_link": video_url,
+            "mcqs": parsed_response.mcqs
+        }
+
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
