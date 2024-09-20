@@ -6,11 +6,14 @@ from fastapi import FastAPI, HTTPException
 from langchain_google_genai import ChatGoogleGenerativeAI
 from dotenv import load_dotenv
 import cloudinary
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 import cloudinary.uploader
 from fastapi.middleware.cors import CORSMiddleware
 from langchain_openai import ChatOpenAI
 from langchain.schema import HumanMessage
+from typing import List, Tuple
+from langchain.output_parsers import PydanticOutputParser
+from langchain.prompts import ChatPromptTemplate
 
 from utils import run_manim, generate_safe_filename, extract_code_script_and_mcq
 # Load environment variables
@@ -49,9 +52,64 @@ app.add_middleware(
 
 
 chate = ChatOpenAI(
-    model_name="gpt-3.5-turbo",
-    openai_api_key=os.getenv("OPENAI_API_KEY")
+    model_name="gpt-3.5-turbo-0125",
+    openai_api_key=OPENAI_API_KEY
 )
+
+class MCQ(BaseModel):
+    question: str
+    options: List[str]
+    correctAnswer: str
+
+class EducationalContent(BaseModel):
+    scenes: List[Tuple[str, str]] = Field(description="List of tuples containing scene descriptions and narration scripts")
+    mcqs: List[MCQ] = Field(description="List of 5 multiple-choice questions")
+    short_topic: str = Field(description="A catchy title for the video")
+
+class ContentRequest(BaseModel):
+    topic: str
+    grade: int
+
+# Create a parser
+parser = PydanticOutputParser(pydantic_object=EducationalContent)
+
+# Create a prompt template
+prompt_template = ChatPromptTemplate.from_template(
+    """You are an AI system for generating educational content for students. 
+    Create concise scene descriptions and corresponding narration scripts for some scenes tailored for a student of grade {grade}. 
+    Additionally, provide 5 multiple-choice questions (MCQs) related to the topic and short catchy video title
+
+    The topic is: {topic}
+
+    {format_instructions}
+    """
+)
+
+
+@app.post("/generate_educational_content/")
+async def generate_educational_content(request: ContentRequest):
+    try:
+        # Format the prompt with user's input and desired output format
+        prompt = prompt_template.format_prompt(
+            grade=request.grade,
+            topic=request.topic,
+            format_instructions=parser.get_format_instructions()
+        )
+
+        # Get the response from the language model
+        response = chate.invoke(prompt.to_messages())
+
+        # Parse the response
+        parsed_response = parser.parse(response.content)
+        for desc, narration in parsed_response.scenes:
+            print(desc, narration)
+        
+        return {"video_title": parsed_response.short_topic, "video_link":"xxx", "mcqs": parsed_response.mcqs}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+
 
 class ChatInput(BaseModel):
     message: str
