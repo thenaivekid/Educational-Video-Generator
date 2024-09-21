@@ -67,6 +67,7 @@ class EducationalContent(BaseModel):
     scenes: List[Tuple[str, str]] = Field(description="List of tuples containing scene descriptions and narration scripts")
     mcqs: List[MCQ] = Field(description="List of 5 multiple-choice questions")
     short_topic: str = Field(description="A catchy title for the video")
+    description:str = Field(description="short description summarizing the content of video")
 
 class ContentRequest(BaseModel):
     topic: str
@@ -78,12 +79,12 @@ parser = PydanticOutputParser(pydantic_object=EducationalContent)
 # Create a prompt template
 prompt_template = ChatPromptTemplate.from_template(
     """You are an AI system for generating educational content for students. 
-    Create concise scene descriptions and corresponding narration scripts for some scenes tailored for a student of grade {grade}. 
-    Additionally, provide 5 multiple-choice questions (MCQs) related to the topic and short catchy video title
+    Additionally, provide 5 multiple-choice questions (MCQs) related to the topic and short catchy video title and desc
 
     The topic is: {topic}
 
     {format_instructions}
+    If the topic in not related to the education, leave each field empty.
     """
 )
 
@@ -100,10 +101,12 @@ async def generate_educational_content(request: ContentRequest):
 
         # Step 2: Get the response from the language model
         response = chate.invoke(prompt.to_messages())
-
+        print("chate response ", response)
         # Step 3: Parse the response
         parsed_response = parser.parse(response.content)
-
+        if not parsed_response.scenes:
+            raise HTTPException(status_code=400, detail="The title field is empty. Please provide a relevant topic.")
+            
         # Step 4: Generate images using DALL-E for each scene description
         image_files = []
         for i, scene_description in enumerate(parsed_response.scenes):
@@ -196,8 +199,8 @@ llm = ChatGoogleGenerativeAI(
 
 MAX_RETRIES = 3
 
-@app.post("/generate_video/")
-async def generate_video(title: str):
+@app.post("/generate_math_video/")
+async def generate_math_video(title: str):
     print("received request: ", title)
     safe_filename = generate_safe_filename(title)
     output_file = f"{safe_filename}.mp4"
@@ -206,8 +209,8 @@ async def generate_video(title: str):
         print("attempt: ", attempt)
         try:
             messages = [
-                ("system", "You are a helpful assistant that creates educational videos for kids."),
-                ("human", f"""Generate Manim code for a short video on '{title}'. Please provide:
+                ("system", "You are a helpful assistant that creates math educational videos for kids."),
+                ("human", f"""Generate Manim code for a short video on '{title}' for primary level students. Please provide:
                 1. Python code for Manim (name the class 'Video')
                 2. A text script with timings for narration
                 3. Five MCQ questions about the video content

@@ -120,7 +120,7 @@ def generate_image(description: str, idx:int, n_files=5) -> str:
             save_image(image_url, image_filename)
             files.append(image_filename)
             
-        time.sleep(15)
+        time.sleep(30)
         return files
     except Exception as e:
         print(f"Error generating image: {str(e)}")
