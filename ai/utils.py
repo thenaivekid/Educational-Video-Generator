@@ -17,7 +17,7 @@ client = OpenAI(api_key=OPENAI_API_KEY)
 async def run_manim(output_file):
     try:
         # Run the manim command with the specified output file
-        os.system(f'manim generate_manim.py Video -ql -o {output_file}')
+        os.system(f'manim manim_code.py -ql -o {output_file}')
         print("Manim execution completed successfully")
     except Exception as e:
         print(f"Error running Manim: {str(e)}")
@@ -106,7 +106,7 @@ def generate_image(description: str, idx:int, n_files=5) -> str:
         
 
         response = client.images.generate(
-        model="dall-e-2",
+        model="dall-e-3",
         prompt=description,
         size="1024x1024",
         quality="standard",
