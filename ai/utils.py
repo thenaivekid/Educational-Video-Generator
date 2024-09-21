@@ -8,6 +8,7 @@ from openai import OpenAI
 from dotenv import load_dotenv
 from pathlib import Path
 import requests
+import time
 
 OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
 client = OpenAI(api_key=OPENAI_API_KEY)
@@ -117,6 +118,8 @@ def generate_image(description: str, idx:int, n_files=5) -> str:
             image_filename = f"temp_img_{idx*n_files+i}.png"
             save_image(image_url, image_filename)
             files.append(image_filename)
+            
+        time.sleep(15)
         return files
     except Exception as e:
         print(f"Error generating image: {str(e)}")
