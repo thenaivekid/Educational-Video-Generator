@@ -9,6 +9,7 @@ from dotenv import load_dotenv
 from pathlib import Path
 import requests
 import time
+from moviepy.editor import VideoFileClip, AudioFileClip
 
 load_dotenv()
 OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
@@ -65,38 +66,38 @@ def generate_safe_filename(title):
 #     return python_code, parsed_script
 
 
-def extract_code_script_and_mcq(content):
-    code_pattern = re.compile(r'```python\n(.*?)```', re.DOTALL)
-    script_pattern = re.compile(r'```script\n(.*?)```', re.DOTALL)
-    mcq_pattern = re.compile(r'```mcq\n(.*?)```', re.DOTALL)
+# def extract_code_script_and_mcq(content):
+#     code_pattern = re.compile(r'```python\n(.*?)```', re.DOTALL)
+#     script_pattern = re.compile(r'```script\n(.*?)```', re.DOTALL)
+#     mcq_pattern = re.compile(r'```mcq\n(.*?)```', re.DOTALL)
     
-    code_match = code_pattern.search(content)
-    script_match = script_pattern.search(content)
-    mcq_match = mcq_pattern.search(content)
+#     code_match = code_pattern.search(content)
+#     script_match = script_pattern.search(content)
+#     mcq_match = mcq_pattern.search(content)
     
-    if not code_match or not script_match or not mcq_match:
-        raise ValueError("Could not extract code, script, and MCQ from the response.")
+#     if not code_match or not script_match or not mcq_match:
+#         raise ValueError("Could not extract code, script, and MCQ from the response.")
     
-    python_code = code_match.group(1)
-    raw_script = script_match.group(1)
-    mcq_json = mcq_match.group(1)
+#     python_code = code_match.group(1)
+#     raw_script = script_match.group(1)
+#     mcq_json = mcq_match.group(1)
     
-    # Parse the raw script into a list of tuples
-    script_lines = raw_script.strip().split('\n')
-    parsed_script = []
+#     # Parse the raw script into a list of tuples
+#     script_lines = raw_script.strip().split('\n')
+#     parsed_script = []
     
-    for line in script_lines:
-        match = re.match(r'(\d+:\d+)\s*-\s*(.*)', line.strip())
-        if match:
-            time_str, text = match.groups()
-            minutes, seconds = map(int, time_str.split(':'))
-            time_seconds = minutes * 60 + seconds
-            parsed_script.append((time_seconds, text.strip()))
+#     for line in script_lines:
+#         match = re.match(r'(\d+:\d+)\s*-\s*(.*)', line.strip())
+#         if match:
+#             time_str, text = match.groups()
+#             minutes, seconds = map(int, time_str.split(':'))
+#             time_seconds = minutes * 60 + seconds
+#             parsed_script.append((time_seconds, text.strip()))
     
-    # Parse the MCQ JSON
-    mcq = json.loads(mcq_json)
+#     # Parse the MCQ JSON
+#     mcq = json.loads(mcq_json)
     
-    return python_code, parsed_script, mcq
+#     return python_code, parsed_script, mcq
 
 
 
@@ -106,7 +107,7 @@ def generate_image(description: str, idx:int, n_files=5) -> str:
         
 
         response = client.images.generate(
-        model="dall-e-3",
+        model="dall-e-2",
         prompt=f"{description}. if you want to generate people generate cartoons instead of real people. follow this instruction strictly. ",
         size="1024x1024",
         quality="standard",
@@ -154,6 +155,32 @@ def save_image(image_url: str, filename: str):
             print(f"Failed to download image: {response.status_code}")
     except Exception as e:
         print(f"Error saving image file: {str(e)}")
+
+def add_audio_to_video(video_path: str, audio_path: str, output_path: str):
+    """Add audio to the video, trimming or silencing as necessary."""
+    try:
+        # Load the video and audio files
+        video = VideoFileClip(video_path)
+        audio = AudioFileClip(audio_path)
+
+        # Set the audio to the video
+        video = video.set_audio(audio)
+
+        # Check lengths and adjust
+        if audio.duration < video.duration:
+            # If audio is shorter, keep the video length
+            final_video = video.set_duration(audio.duration)
+        else:
+            # If video is shorter, keep the video length and silence the rest
+            final_video = video.set_duration(video.duration)
+
+        # Write the final video to a file
+        final_video.write_videofile(output_path, codec='libx264', audio_codec='aac')
+
+        print(f"Video with audio saved as: {output_path}")
+    except Exception as e:
+        print(f"Error adding audio to video: {str(e)}")
+
 
 if __name__ == "__main__":
     generate_image("beautiful mountain")

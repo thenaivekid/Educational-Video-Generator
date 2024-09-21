@@ -1,26 +1,35 @@
-from moviepy.editor import VideoFileClip
+from moviepy.editor import VideoFileClip, AudioFileClip
 
-def extract_thumbnail(video_path: str, thumbnail_path: str):
-    """Extract the first frame from the video and save it as a thumbnail image."""
+def add_audio_to_video(video_path: str, audio_path: str, output_path: str):
+    """Add audio to the video, trimming or silencing as necessary."""
     try:
-        # Load the video file
+        # Load the video and audio files
         video = VideoFileClip(video_path)
+        audio = AudioFileClip(audio_path)
 
-        # Get the first frame
-        first_frame = video.get_frame(0)  # Get the frame at time 0 seconds
+        # Set the audio to the video
+        video = video.set_audio(audio)
 
-        # Save the first frame as an image
-        first_frame_image = f"{thumbnail_path}.png"
-        video.save_frame(first_frame_image, t=0)  # Save the frame as an image
+        # Check lengths and adjust
+        if audio.duration < video.duration:
+            # If audio is shorter, keep the video length
+            final_video = video.set_duration(audio.duration)
+        else:
+            # If video is shorter, keep the video length and silence the rest
+            final_video = video.set_duration(video.duration)
 
-        print(f"Thumbnail saved as: {first_frame_image}")
-        return first_frame_image
+        # Write the final video to a file
+        final_video.write_videofile(output_path, codec='libx264', audio_codec='aac')
+
+        print(f"Video with audio saved as: {output_path}")
     except Exception as e:
-        print(f"Error extracting thumbnail: {str(e)}")
-        return None
+        print(f"Error adding audio to video: {str(e)}")
 
 # Example usage
 if __name__ == "__main__":
-    video_path = r".\media\videos\generate_manim\480p15\Video.mp4"  # Replace with your video path
-    thumbnail_path = "./"  # Replace with your desired thumbnail path
-    extract_thumbnail(video_path, thumbnail_path)
+    output_file = "different_shapes_like_star_circle_etc_colorful_1726919096.mp4"
+    generic_path = f"media/videos/manim_code/480p15/{output_file}"  # Path to the video
+    audio_path = "temp_math_audio.mp3"  # Path to the audio file
+    output_path = f"math_vid_final.mp4"  # Output path for the final video
+
+    add_audio_to_video(generic_path, audio_path, output_path)

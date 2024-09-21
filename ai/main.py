@@ -16,7 +16,7 @@ from langchain.prompts import ChatPromptTemplate
 from moviepy.editor import ImageClip, AudioFileClip, concatenate_videoclips
 from typing import List
 
-from utils import run_manim, generate_safe_filename, extract_code_script_and_mcq, generate_image, text_to_speech, save_image
+from utils import run_manim, generate_safe_filename, generate_image, text_to_speech, save_image, add_audio_to_video
 # Load environment variables
 load_dotenv()
 GOOGLE_API_KEY = os.getenv("GOOGLE_API_KEY")
@@ -189,8 +189,8 @@ async def chat_with_gpt(input: ChatInput):
 
 
 class MathContent(BaseModel):
-    manim_code: str = Field(description="manim script in python to generate the video according to the user's query")
-    caption:str = Field(description="Narration script to narrate the texts in video and the video itself")
+    manim_code: str = Field(description="manim script in python to generate the video according to the user's query. make the video at least 20 seconds long or more")
+    caption:str = Field(description="Narration script to narrate the texts in video and the video itself in one sentence")
     mcqs: List[MCQ] = Field(description="List of 5 multiple-choice questions")
     short_topic: str = Field(description="A catchy title for the video")
     description:str = Field(description="short description summarizing the content of video")
@@ -210,6 +210,7 @@ async def generate_math_video(request: ContentRequest):
     print("output_file: ", output_file)
     
     message = f"""You are an AI system for generating educational mathematics video content for students of grade {request.grade}. 
+            you can add more details relevant to the topic. then generate the manim code for the video. make the visualization colorful. add on screen texts. text must not cover the main contain.
                 Additionally, provide 5 multiple-choice questions (MCQs) related to the topic and short catchy video title and desc
 
                 The topic is: {request.topic}
@@ -246,17 +247,17 @@ async def generate_math_video(request: ContentRequest):
 
             # Construct the path to the generated video
             generic_path = f"media/videos/manim_code/480p15/{output_file}"
-            
+            text_to_speech(parsed_response.caption, "temp_math_audio.mp3")
+            add_audio_to_video(generic_path, "temp_math_audio.mp3", generic_path)
             # Check if the video file exists
             if not os.path.exists(generic_path):
                 raise FileNotFoundError("Video file not created")
             
             
             video_url = await upload_to_cloudinary(generic_path, 'video')
-            # thumbnail = cloudinary.uploader.upload("thumbnail.png")
             
-            # Clean up files
-            for file_path in [generic_path, "manim_code.py"]:
+            # # Clean up files
+            for file_path in [generic_path, "manim_code.py", "temp_math_audio.mp3"]:
                 if os.path.exists(file_path):
                     os.remove(file_path)
             

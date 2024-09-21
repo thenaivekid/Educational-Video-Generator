@@ -1,0 +1,4 @@
+# This file is used internally by FFMPEG.
+file 'file:C:/Users/Acer/codes/hackademia2/ai/media/videos/manim_code/480p15/partial_movie_files/EarthSunRevolution/1185818338_1800169357_3602143241.mp4'
+file 'file:C:/Users/Acer/codes/hackademia2/ai/media/videos/manim_code/480p15/partial_movie_files/EarthSunRevolution/624642324_1334435231_3962756164.mp4'
+file 'file:C:/Users/Acer/codes/hackademia2/ai/media/videos/manim_code/480p15/partial_movie_files/EarthSunRevolution/624642324_1141282389_2785774944.mp4'
