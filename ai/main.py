@@ -78,7 +78,7 @@ class ContentRequest(BaseModel):
 @app.post("/generate_educational_content/")
 async def generate_educational_content(request: ContentRequest):
     prompt_template = ChatPromptTemplate.from_template(
-        """You are an AI system for generating educational video content for students. 
+        """You are an AI system for generating educational video content for students. please generate only 2 scenes.
         Additionally, provide 5 multiple-choice questions (MCQs) related to the topic and short catchy video title and desc
 
         The topic is: {topic}
@@ -208,10 +208,10 @@ async def generate_math_video(request: ContentRequest):
     safe_filename = generate_safe_filename(request.topic)
     output_file = f"{safe_filename}.mp4"
     print("output_file: ", output_file)
-    
+    code = ""
     message = f"""You are an AI system for generating educational mathematics video content for students of grade {request.grade}. 
             you can add more details relevant to the topic. then generate the manim code for the video. make the visualization colorful. add on screen texts. text must not cover the main contain.
-                Additionally, provide 5 multiple-choice questions (MCQs) related to the topic and short catchy video title and desc
+                Additionally, provide 5 multiple-choice questions (MCQs) related to the topic and long video title and desc.make animation long with some examples.follow this strictly.
 
                 The topic is: {request.topic}
 
@@ -240,26 +240,26 @@ async def generate_math_video(request: ContentRequest):
             with open('manim_code.py', 'w') as f:
                 f.write(parsed_response.manim_code)
             print("python code written to file attempt: ", attempt)
-            
+            code = parsed_response.manim_code
             # Run the generated Manim file
             await run_manim(output_file)
             print(f"Attempt {attempt + 1}: Successfully ran the generated code")
 
             # Construct the path to the generated video
-            generic_path = f"media/videos/manim_code/480p15/{output_file}"
+            generic_vid_path = f"media/videos/manim_code/480p15/{output_file}"
             text_to_speech(parsed_response.caption, "temp_math_audio.mp3")
-            add_audio_to_video(generic_path, "temp_math_audio.mp3", generic_path)
+            add_audio_to_video(generic_vid_path, "temp_math_audio.mp3", "final_video.mp4")
             # Check if the video file exists
-            if not os.path.exists(generic_path):
+            if not os.path.exists("final_video.mp4"):
                 raise FileNotFoundError("Video file not created")
             
             
-            video_url = await upload_to_cloudinary(generic_path, 'video')
+            video_url = await upload_to_cloudinary("final_video.mp4", 'video')
             
-            # # Clean up files
-            for file_path in [generic_path, "manim_code.py", "temp_math_audio.mp3"]:
-                if os.path.exists(file_path):
-                    os.remove(file_path)
+            # # # Clean up files
+            # for file_path in [generic_vid_path, "manim_code.py", "temp_math_audio.mp3", ""final_video.mp4""]:
+            #     if os.path.exists(file_path):
+            #         os.remove(file_path)
             
             return {
                 "video_title": parsed_response.short_topic,
@@ -280,7 +280,7 @@ async def generate_math_video(request: ContentRequest):
                     The previous attempt to generate Manim code for '{request.topic}' failed with the error: {error_message}. 
                     Please provide an improved version of the code that addresses this issue. 
                     Remember to name the class as 'Video' for the scene.
-                    Here's the previously generated code for reference:\n\n{parsed_response.manim_code}"""
+                    Here's the previously generated code for reference:\n\n{code}"""
                 
                 message = retry_message
             else:

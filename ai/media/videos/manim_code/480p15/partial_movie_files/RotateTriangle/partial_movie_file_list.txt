@@ -1,0 +1,5 @@
+# This file is used internally by FFMPEG.
+file 'file:C:/Users/Acer/codes/hackademia2/ai/media/videos/manim_code/480p15/partial_movie_files/RotateTriangle/1158694017_799789695_2099805641.mp4'
+file 'file:C:/Users/Acer/codes/hackademia2/ai/media/videos/manim_code/480p15/partial_movie_files/RotateTriangle/3268406427_2674799311_2393092923.mp4'
+file 'file:C:/Users/Acer/codes/hackademia2/ai/media/videos/manim_code/480p15/partial_movie_files/RotateTriangle/1104348041_667837741_879441489.mp4'
+file 'file:C:/Users/Acer/codes/hackademia2/ai/media/videos/manim_code/480p15/partial_movie_files/RotateTriangle/648639472_3494816192_3405579234.mp4'

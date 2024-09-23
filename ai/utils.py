@@ -108,7 +108,7 @@ def generate_image(description: str, idx:int, n_files=5) -> str:
 
         response = client.images.generate(
         model="dall-e-2",
-        prompt=f"{description}. if you want to generate people generate cartoons instead of real people. follow this instruction strictly. ",
+        prompt=f"{description}",
         size="1024x1024",
         quality="standard",
         n=n_files,
